@@ -4,6 +4,9 @@ canvas.height = window.innerHeight*0.95;
 var W = canvas.width;
 var H = canvas.height;
 var c = canvas.getContext('2d');
+
+var gravity = 0.015;
+
 var leftPressed = false;
 var rightPressed = false;
 
@@ -154,13 +157,42 @@ function Gun(src){
   }
 }
 
+function Bullet(src,x,y,dv,angle){
+  this.bullet = new Image();
+  this.bullet.src = src;
+  this.scale = 1.5;
+  this.width = 12*this.scale;
+  this.height = 3*this.scale;
+  this.x = x;
+  this.y = y;
+  this.speed = dv;
+  this.angle = angle;
+  this.dx = this.speed*Math.cos(this.angle);
+  this.dy = this.speed*Math.sin(this.angle);
 
+  this.draw = function() {
+    this.angle = Math.atan(this.dy/this.dx);
+    c.translate(this.x, this.y);
+    c.rotate(this.angle);
+    c.drawImage(this.bullet, 0, 0, 12, 3, 0, 0, this.width, this.height);
+    c.rotate(-this.angle);
+    c.translate(-this.x, -this.y);
+
+  }
+  this.update = function() {
+    this.x += this.dx;
+    this.y += this.dy;
+    this.dy += gravity;
+    this.draw();
+  }
+}
 
 function init(){
   mountain = new Mountain();
   mountain.findLocus();
   tank1 = new Tank("redTank.png",500,mountain.y[0]);
   gun1 = new Gun("gun.png");
+  bullet = new Bullet("bullet.png", 100, 300, 3,- Math.PI/4);
 }
 
 init();
@@ -175,5 +207,6 @@ function animate(){
   tank1.update();
   mountain.draw();
   gun1.draw(tank1.x, tank1.y, tank1.angle);
+  bullet.update();
 }
 animate();
