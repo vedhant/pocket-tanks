@@ -7,6 +7,11 @@ var c = canvas.getContext('2d');
 var leftPressed = false;
 var rightPressed = false;
 
+var mouse = {
+  x : undefined,
+  y : undefined
+};
+
 window.addEventListener('keydown',function(e){
   if(e.key == 'ArrowLeft'){leftPressed = true;}
   if(e.key == 'ArrowRight'){rightPressed = true;}
@@ -15,6 +20,11 @@ window.addEventListener('keydown',function(e){
 window.addEventListener('keyup',function(e){
   if(e.key == 'ArrowLeft'){leftPressed = false;}
   if(e.key == 'ArrowRight'){rightPressed = false;}
+});
+
+window.addEventListener('mousemove', function(e){
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
 });
 
 function Mountain(){
@@ -112,12 +122,45 @@ function Tank(src, x, y){
   }
 }
 
+function Gun(src){
+  this.gun = new Image();
+  this.gun.src = src;
+  this.scale = 1.5;
+  this.width = 12*this.scale;
+  this.height = 4*this.scale;
+  this.angle = -Math.PI/4;
+
+  this.calcAngle = function(){
+    slope = (this.y + this.scale*14*Math.sin(this.tank_angle) + this.scale*10*Math.cos(this.tank_angle) - mouse.y)/(this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle) -  mouse.x);
+    this.angle = Math.atan(slope);
+    if(mouse.x<this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle)){
+      this.angle += Math.PI;
+    }
+  }
+
+  this.draw = function(x,y,tank_angle){
+    this.tank_angle = tank_angle;
+    this.x = x;
+    this.y = y;
+    c.translate(this.x,this.y);
+    c.rotate(this.tank_angle);
+    c.translate(this.scale*14, -this.scale*10);
+    c.rotate(this.angle-this.tank_angle);
+    c.drawImage(this.gun, 0, 0, 12, 4, 0, 0, this.width, this.height);
+    c.rotate(this.tank_angle - this.angle);
+    c.translate(-this.scale*14, this.scale*10);
+    c.rotate(-this.tank_angle);
+    c.translate(-this.x,-this.y);
+  }
+}
+
 
 
 function init(){
   mountain = new Mountain();
   mountain.findLocus();
   tank1 = new Tank("redTank.png",500,mountain.y[0]);
+  gun1 = new Gun("gun.png");
 }
 
 init();
@@ -125,7 +168,12 @@ init();
 function animate(){
   requestAnimationFrame(animate);
   c.clearRect(0,0,innerWidth,innerHeight);
+  if(mouse.x){
+    gun1.calcAngle();
+  }
+
   tank1.update();
   mountain.draw();
+  gun1.draw(tank1.x, tank1.y, tank1.angle);
 }
 animate();
