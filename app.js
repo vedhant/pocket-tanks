@@ -1,11 +1,21 @@
 var canvas = document.querySelector('canvas');
-
 canvas.width = window.innerWidth*0.95;
 canvas.height = window.innerHeight*0.95;
 var W = canvas.width;
 var H = canvas.height;
-
 var c = canvas.getContext('2d');
+var leftPressed = false;
+var rightPressed = false;
+
+window.addEventListener('keydown',function(e){
+  if(e.key == 'ArrowLeft'){leftPressed = true;}
+  if(e.key == 'ArrowRight'){rightPressed = true;}
+});
+
+window.addEventListener('keyup',function(e){
+  if(e.key == 'ArrowLeft'){leftPressed = false;}
+  if(e.key == 'ArrowRight'){rightPressed = false;}
+});
 
 function Mountain(){
   this.x = [];
@@ -53,13 +63,69 @@ function Mountain(){
   }
 }
 
-var mountain = new Mountain();
-mountain.findLocus();
 
+function Tank(src, x, y){
+  this.tank = new Image();
+  this.tank.src = src;
+  this.scale = 1.5;
+  this.width = this.scale*28;
+  this.height = this.scale*10;
+  this.x = x;
+  this.angle = 0;
+  this.dx = 0;
+  this.draw = function(){
+    c.drawImage(this.tank, 0, 0, 28, 10, 0, 0, this.width, this.height);
+  }
+  this.update = function(){
+    if(rightPressed){
+      this.dx = 1;
+    }
+    else if(leftPressed){
+      this.dx = -1;
+    }
+    else{
+      this.dx = 0;
+    }
+    this.x += this.dx*Math.cos(this.angle);
+    this.findY();
+    this.rotate();
+  }
+  this.findY = function(){
+    var i = 0;
+    for(var i = 0; i<mountain.x.length; ++i){
+      if((this.x+this.width/2 >= mountain.x[i]) && (this.x+this.width/2 < mountain.x[i+1])){
+        break;
+      }
+    }
+    var slope = (mountain.y[i+1] - mountain.y[i])/(mountain.x[i+1] - mountain.x[i]);
+    this.y = slope*(this.x - mountain.x[i]) + mountain.y[i];
+    this.angle = Math.atan(slope);
+  }
+  this.rotate = function(){
+    c.translate(this.x,this.y);
+    c.rotate(this.angle);
+    c.translate(0,-this.height);
+    this.draw();
+    c.translate(0,this.height);
+    c.rotate(-this.angle);
+    c.translate(-this.x,-this.y);
+  }
+}
+
+
+
+function init(){
+  mountain = new Mountain();
+  mountain.findLocus();
+  tank1 = new Tank("redTank.png",500,mountain.y[0]);
+}
+
+init();
 
 function animate(){
   requestAnimationFrame(animate);
   c.clearRect(0,0,innerWidth,innerHeight);
+  tank1.update();
   mountain.draw();
 }
 animate();
