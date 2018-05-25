@@ -6,9 +6,10 @@ var H = canvas.height;
 var c = canvas.getContext('2d');
 
 var gravity = 0.015;
-
 var leftPressed = false;
 var rightPressed = false;
+var player1_state = false;
+var player2_state = false;
 
 var mouse = {
   x : undefined,
@@ -76,8 +77,7 @@ function Mountain(){
   }
 }
 
-
-function Tank(src, x, y){
+function Tank(src, x, state){
   this.tank = new Image();
   this.tank.src = src;
   this.scale = 1.5;
@@ -86,14 +86,15 @@ function Tank(src, x, y){
   this.x = x;
   this.angle = 0;
   this.dx = 0;
+  this.state = state;
   this.draw = function(){
     c.drawImage(this.tank, 0, 0, 28, 10, 0, 0, this.width, this.height);
   }
   this.update = function(){
-    if(rightPressed){
+    if(rightPressed && this.state){
       this.dx = 1;
     }
-    else if(leftPressed){
+    else if(leftPressed && this.state){
       this.dx = -1;
     }
     else{
@@ -125,19 +126,22 @@ function Tank(src, x, y){
   }
 }
 
-function Gun(src){
+function Gun(src, state){
   this.gun = new Image();
   this.gun.src = src;
   this.scale = 1.5;
   this.width = 12*this.scale;
   this.height = 4*this.scale;
   this.angle = -Math.PI/4;
+  this.state = state;
 
   this.calcAngle = function(){
-    slope = (this.y + this.scale*14*Math.sin(this.tank_angle) + this.scale*10*Math.cos(this.tank_angle) - mouse.y)/(this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle) -  mouse.x);
-    this.angle = Math.atan(slope);
-    if(mouse.x<this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle)){
-      this.angle += Math.PI;
+    if(this.state){
+      slope = (this.y + this.scale*14*Math.sin(this.tank_angle) + this.scale*10*Math.cos(this.tank_angle) - mouse.y)/(this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle) -  mouse.x);
+      this.angle = Math.atan(slope);
+      if(mouse.x<this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle)){
+        this.angle += Math.PI;
+      }
     }
   }
 
@@ -187,26 +191,62 @@ function Bullet(src,x,y,dv,angle){
   }
 }
 
-function init(){
+// function init(){
+//   mountain = new Mountain();
+//   mountain.findLocus();
+//   tank1 = new Tank("redTank.png",500);
+//   gun1 = new Gun("gun.png");
+//   bullet = new Bullet("bullet.png", 100, 300, 3,- Math.PI/4);
+// }
+
+function startGame(){
   mountain = new Mountain();
   mountain.findLocus();
-  tank1 = new Tank("redTank.png",500,mountain.y[0]);
-  gun1 = new Gun("gun.png");
-  bullet = new Bullet("bullet.png", 100, 300, 3,- Math.PI/4);
+  tank1 = new Tank("redTank.png", W*Math.random()/3, false);
+  tank2 = new Tank("yellowTank.png", W - W*Math.random()/3, false);
+  gun1 = new Gun("gun.png", false);
+  gun2 = new Gun("gun.png", false);
+  
 }
 
-init();
+function playerTurn(player){
+  if(player == 1){
+    player1_state = true;
+    player2_state = false;
+  }
+  else{
+    player1_state = false;
+    player2_state = true;
+  }
+  tank1.state = player1_state;
+  tank2.state = player2_state;
+  gun1.state = player1_state;
+  gun2.state = player2_state;
+
+}
+function fire(){
+
+}
+
+startGame();
 
 function animate(){
   requestAnimationFrame(animate);
   c.clearRect(0,0,innerWidth,innerHeight);
   if(mouse.x){
     gun1.calcAngle();
+    gun2.calcAngle();
   }
-
   tank1.update();
+  tank2.update();
   mountain.draw();
   gun1.draw(tank1.x, tank1.y, tank1.angle);
-  bullet.update();
+  gun2.draw(tank2.x, tank2.y, tank2.angle);
+  // bullet.update();
 }
 animate();
+
+
+//FIX
+//tank2 out of frame
+//background color and terrain color
