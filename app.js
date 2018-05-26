@@ -5,6 +5,7 @@ var W = canvas.width;
 var H = canvas.height;
 var c = canvas.getContext('2d');
 
+
 var gravity = 0.015;
 var leftPressed = false;
 var rightPressed = false;
@@ -32,41 +33,48 @@ window.addEventListener('mousemove', function(e){
 });
 
 function Mountain(){
-  this.x = [];
-  this.y = [];
-  this.maxSlope = -(24*H)*(0.7)/(5*W);
-  this.findLocus = function(){
-    this.x.push(0);
-    this.y.push((H*4/5)*(1+Math.random()/4));
-    this.x.push(W/6);
-    var x = this.x[1];
-    this.y.push(this.y[0]);
-    var y = this.y[1];
-    while(x<(W/2)){
-      x = this.x[this.x.length-1] + Math.random()*(W/40);
-      y = this.y[this.y.length-1] + (x-this.x[this.x.length-1])*this.maxSlope*Math.random();
-      this.x.push(x);
-      this.y.push(y);
-    }
-    while(x<(5*W/6)){
-      x = this.x[this.x.length-1] + Math.random()*(W/40);
-      var rand = Math.random();
-      if((y + (x-this.x[this.x.length-1])*(-1)*this.maxSlope*rand) < H){
-        y = this.y[this.y.length-1] + (x-this.x[this.x.length-1])*(-1)*this.maxSlope*rand;
+  this.x = [0, W];
+  this.y = [H*3/4, H*3/4];
+  this.roughness = 0.3;
+
+  this.findLocus = function(start, displacement){
+    var start_index;
+    for(var i = 0; i<this.x.length; ++i){
+      if(this.x[i] == start){
+        start_index = i;
+        break;
       }
-      this.x.push(x);
-      this.y.push(y);
     }
-    this.x.push(W);
-    this.y.push(y);
-    this.x.push(W);
-    this.y.push(H);
-    this.x.push(0);
-    this.y.push(H);
-    this.x.push(0);
-    this.y.push(this.y[0]);
+    if(this.x[start_index+1] - this.x[start_index] < 3){
+      return;
+    }
+    var midx = (this.x[start_index] + this.x[start_index+1])/2;
+    var midy = (this.y[start_index] + this.y[start_index+1])/2;
+    if(this.x.length == 2){
+
+      var rand = 0;
+      while(rand < 0.5){
+        rand = Math.random();
+      }
+      console.log(rand);
+      midy += displacement*rand;
+    }
+    else{
+      midy += displacement*Math.random();
+    }
+    this.x.splice(start_index+1, 0, midx);
+    this.y.splice(start_index+1, 0, midy);
+    displacement *= this.roughness;
+    this.findLocus(start, displacement);
+    this.findLocus(midx, displacement);
   }
   this.draw = function(){
+    this.x.push(W);
+    this.y.push(H);
+    this.x.push(0);
+    this.y.push(H);
+    this.x.push(this.x[0]);
+    this.y.push(this.y[0]);
     c.beginPath();
     c.moveTo(this.x[0],this.y[0]);
     for(var i = 1; i<this.x.length; ++i){
@@ -92,10 +100,10 @@ function Tank(src, x, state){
   }
   this.update = function(){
     if(rightPressed && this.state){
-      this.dx = 1;
+      this.dx = 1.3;
     }
     else if(leftPressed && this.state){
-      this.dx = -1;
+      this.dx = -1.3;
     }
     else{
       this.dx = 0;
@@ -201,12 +209,12 @@ function Bullet(src,x,y,dv,angle){
 
 function startGame(){
   mountain = new Mountain();
-  mountain.findLocus();
+  mountain.findLocus(0, -3*H/4);
   tank1 = new Tank("redTank.png", W*Math.random()/3, false);
   tank2 = new Tank("yellowTank.png", W - W*Math.random()/3, false);
   gun1 = new Gun("gun.png", false);
   gun2 = new Gun("gun.png", false);
-  
+  playerTurn(2);
 }
 
 function playerTurn(player){
@@ -250,3 +258,4 @@ animate();
 //FIX
 //tank2 out of frame
 //background color and terrain color
+//fix tank movement bounds
