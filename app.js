@@ -6,9 +6,10 @@ var H = canvas.height;
 var c = canvas.getContext('2d');
 
 
-var gravity = 0.015;
+var gravity = 0.04;
 var leftPressed = false;
 var rightPressed = false;
+var spacePressed = false;
 var player1_state = false;
 var player2_state = false;
 
@@ -20,11 +21,13 @@ var mouse = {
 window.addEventListener('keydown',function(e){
   if(e.key == 'ArrowLeft'){leftPressed = true;}
   if(e.key == 'ArrowRight'){rightPressed = true;}
+  if(e.key == ' '){spacePressed = true;}
 });
 
 window.addEventListener('keyup',function(e){
   if(e.key == 'ArrowLeft'){leftPressed = false;}
   if(e.key == 'ArrowRight'){rightPressed = false;}
+  if(e.key == ' '){spacePressed = false;}
 });
 
 window.addEventListener('mousemove', function(e){
@@ -56,11 +59,10 @@ function Mountain(){
       while(rand < 0.5){
         rand = Math.random();
       }
-      console.log(rand);
       midy += displacement*rand;
     }
     else{
-      midy += displacement*Math.random();
+      midy += displacement*(Math.random() - 0.5)*2;
     }
     this.x.splice(start_index+1, 0, midx);
     this.y.splice(start_index+1, 0, midy);
@@ -142,13 +144,21 @@ function Gun(src, state){
   this.height = 4*this.scale;
   this.angle = -Math.PI/4;
   this.state = state;
+  this.max_speed = 8;
 
   this.calcAngle = function(){
     if(this.state){
-      slope = (this.y + this.scale*14*Math.sin(this.tank_angle) + this.scale*10*Math.cos(this.tank_angle) - mouse.y)/(this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle) -  mouse.x);
+      slope = (this.y + this.scale*14*Math.sin(this.tank_angle) - this.scale*10*Math.cos(this.tank_angle) - mouse.y)/(this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle) -  mouse.x);
       this.angle = Math.atan(slope);
       if(mouse.x<this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle)){
         this.angle += Math.PI;
+      }
+      this.aim();
+      if(spacePressed){
+        fire(this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle) + Math.cos(this.angle)*this.width,
+        this.y + this.scale*14*Math.sin(this.tank_angle) - this.scale*10*Math.cos(this.tank_angle) + Math.sin(this.angle)*this.width,
+        this.speed, this.angle);
+        this.state = false;
       }
     }
   }
@@ -161,11 +171,39 @@ function Gun(src, state){
     c.rotate(this.tank_angle);
     c.translate(this.scale*14, -this.scale*10);
     c.rotate(this.angle-this.tank_angle);
-    c.drawImage(this.gun, 0, 0, 12, 4, 0, 0, this.width, this.height);
+    // c.translate(-this.height*Math.sin(this.angle), -this.height*Math.cos(this.angle));
+    c.drawImage(this.gun, 0, 0, 12, 4, 0, -this.height/2, this.width, this.height);
+    // c.translate(this.height*Math.sin(this.angle), this.height*Math.cos(this.angle));
     c.rotate(this.tank_angle - this.angle);
     c.translate(-this.scale*14, this.scale*10);
     c.rotate(-this.tank_angle);
     c.translate(-this.x,-this.y);
+  }
+
+  this.aim = function() {
+    var x = this.x + this.scale*14*Math.cos(this.tank_angle) + this.scale*10*Math.sin(this.tank_angle) + Math.cos(this.angle)*this.width;
+    var y = this.y + this.scale*14*Math.sin(this.tank_angle) - this.scale*10*Math.cos(this.tank_angle) + Math.sin(this.angle)*this.width;
+    var distance = Math.sqrt(Math.pow(mouse.x - x, 2) + Math.pow(mouse.y - y, 2));
+    var no_of_dots = 9;
+    if(distance > W/4){
+      var radius = 2.5;
+      var x_gap = (W/4)*Math.cos(this.angle)/no_of_dots;
+      var y_gap = (W/4)*Math.sin(this.angle)/no_of_dots;
+      this.speed = this.max_speed;
+    }
+    else{
+      var radius = 1.8*(distance*4/W)+0.7;
+      var x_gap = (mouse.x - x)/no_of_dots;
+      var y_gap = (mouse.y - y)/no_of_dots;
+      this.speed = this.max_speed*(distance*4/W);
+    }
+    for(var i = 0; i<no_of_dots; ++i){
+      c.beginPath();
+      c.arc(x + x_gap/2 + i*x_gap, y + y_gap/2 + i*y_gap, radius, 0, Math.PI*2, true);
+      c.fillStyle = 'white';
+      c.fill();
+    }
+
   }
 }
 
@@ -232,8 +270,12 @@ function playerTurn(player){
   gun2.state = player2_state;
 
 }
-function fire(){
-
+function fire(x, y, v, angle){
+  bullet = new Bullet("bullet.png", x, y, v, angle);
+  player1_state = false;
+  player2_state = false;
+  tank1.state = false;
+  tank2.state = false;
 }
 
 startGame();
@@ -241,16 +283,20 @@ startGame();
 function animate(){
   requestAnimationFrame(animate);
   c.clearRect(0,0,innerWidth,innerHeight);
+  mountain.draw();
   if(mouse.x){
     gun1.calcAngle();
     gun2.calcAngle();
   }
   tank1.update();
   tank2.update();
-  mountain.draw();
+
   gun1.draw(tank1.x, tank1.y, tank1.angle);
   gun2.draw(tank2.x, tank2.y, tank2.angle);
-  // bullet.update();
+  try{
+    bullet.update();
+  }
+  catch{}
 }
 animate();
 
