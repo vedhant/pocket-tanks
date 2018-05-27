@@ -38,7 +38,7 @@ window.addEventListener('mousemove', function(e){
 function Mountain(){
   this.x = [0, W];
   this.y = [H*3/4, H*3/4];
-  this.roughness = 0.3;
+  this.roughness = 0.35;
 
   this.findLocus = function(start, displacement){
     var start_index;
@@ -48,7 +48,7 @@ function Mountain(){
         break;
       }
     }
-    if(this.x[start_index+1] - this.x[start_index] < 3){
+    if(this.x[start_index+1] - this.x[start_index] < 2){
       return;
     }
     var midx = (this.x[start_index] + this.x[start_index+1])/2;
@@ -207,18 +207,21 @@ function Gun(src, state){
   }
 }
 
-function Bullet(src,x,y,dv,angle){
+function Bullet(src){
   this.bullet = new Image();
   this.bullet.src = src;
   this.scale = 1.5;
   this.width = 12*this.scale;
   this.height = 3*this.scale;
-  this.x = x;
-  this.y = y;
-  this.speed = dv;
-  this.angle = angle;
-  this.dx = this.speed*Math.cos(this.angle);
-  this.dy = this.speed*Math.sin(this.angle);
+  this.x = 0;
+  this.y = 0;
+  this.speed = 0;
+  this.angle = 0;
+  this.init = function() {
+    this.dx = this.speed*Math.cos(this.angle);
+    this.dy = this.speed*Math.sin(this.angle);
+  }
+  this.state = false;
 
   this.draw = function() {
     this.angle = Math.atan(this.dy/this.dx);
@@ -230,20 +233,60 @@ function Bullet(src,x,y,dv,angle){
 
   }
   this.update = function() {
-    this.x += this.dx;
-    this.y += this.dy;
-    this.dy += gravity;
-    this.draw();
+    if(this.state)
+    {
+      this.x += this.dx;
+      this.y += this.dy;
+      this.dy += gravity;
+      this.draw();
+      this.collisionDetect();
+    }
+  }
+  this.collisionDetect = function() {
+    for(var i = 1; i<mountain.x.length - 3; ++i){
+      if(this.x >= mountain.x[i-1] && this.x < mountain.x[i]){
+        var slope = (mountain.y[i] - mountain.y[i-1])/(mountain.x[i] - mountain.x[i-1]);
+        if(this.y >= mountain.y[i-1] + slope*(this.x - mountain.x[i-1]))
+        {
+          this.state = false;
+          explosion.x = this.x;
+          explosion.y = this.y;
+          explosion.state = true;
+        }
+      }
+    }
   }
 }
 
-// function init(){
-//   mountain = new Mountain();
-//   mountain.findLocus();
-//   tank1 = new Tank("redTank.png",500);
-//   gun1 = new Gun("gun.png");
-//   bullet = new Bullet("bullet.png", 100, 300, 3,- Math.PI/4);
-// }
+function Explosion(src){
+  this.x = 0;
+  this.y = 0;
+  this.max_radius = W/20;
+  this.radius = 3;
+  this.explosion = new Image();
+  this.explosion.src = src;
+  this.speed = 3;
+  this.state = false;
+  this.draw = function() {
+    if(this.state){
+      c.drawImage(this.explosion, 0, 0, 246, 244, this.x - this.radius, this.y - this.radius,this.radius*2 ,this.radius*2 );
+      if(this.radius < this.max_radius){
+        this.radius += this.speed;
+      }
+      else{
+        for(var i=0; i<mountain.x.length - 3; ++i){
+          if(mountain.x[i] >= this.x - this.radius && mountain.x[i] <= this.x + this.radius){
+            var y = Math.sqrt(Math.pow(this.radius, 2) - Math.pow(this.x - mountain.x[i], 2)) + this.y;
+            if(y > mountain.y[i]){
+              mountain.y[i] = y;
+            }
+          }
+        }
+        this.state = false;
+      }
+    }
+  }
+}
 
 function startGame(){
   mountain = new Mountain();
@@ -252,6 +295,8 @@ function startGame(){
   tank2 = new Tank("yellowTank.png", W - W*Math.random()/3, false);
   gun1 = new Gun("gun.png", false);
   gun2 = new Gun("gun.png", false);
+  bullet = new Bullet("bullet.png");
+  explosion = new Explosion("explosion.png");
   playerTurn(2);
 }
 
@@ -271,7 +316,12 @@ function playerTurn(player){
 
 }
 function fire(x, y, v, angle){
-  bullet = new Bullet("bullet.png", x, y, v, angle);
+  bullet.speed = v;
+  bullet.x = x;
+  bullet.y = y;
+  bullet.angle = angle;
+  bullet.state = true;
+  bullet.init();
   player1_state = false;
   player2_state = false;
   tank1.state = false;
@@ -297,6 +347,8 @@ function animate(){
     bullet.update();
   }
   catch{}
+  explosion.draw();
+
 }
 animate();
 
@@ -305,3 +357,4 @@ animate();
 //tank2 out of frame
 //background color and terrain color
 //fix tank movement bounds
+//mouse scope out of window
