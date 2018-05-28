@@ -1,5 +1,7 @@
 #mountain{
   background: blue;
+  /* background: linear-gradient(#141E30, #243B55); */
+  background: linear-gradient(#09112D, #0A1140, #0D1851, #122266, #87B2F3);
   margin: auto;
   position: absolute;
   top: 0;
@@ -11,4 +13,19 @@
   position: absolute;
   top: 0;
   left: 0;
+}
+
+#pause{
+  position: absolute;
+  top: 90vh;
+  left: 50vw;
+  cursor: pointer;
+  border: 2px solid white;
+  padding: 4px;
+  border-radius: 2px;
+}
+
+i{
+  color: white;
+
 }

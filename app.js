@@ -1,9 +1,15 @@
 var canvas = document.getElementById('main');
 var canvas_mountain = document.getElementById('mountain');
-canvas.width = window.innerWidth*0.95;
-canvas.height = window.innerHeight*0.95;
-canvas_mountain.width = window.innerWidth*0.95;
-canvas_mountain.height = window.innerHeight*0.95;
+
+var pause = document.querySelectorAll('i');
+var pause_div = document.getElementById('pause');
+pause[0].style.display = 'none';
+pause[1].style.display = 'block';
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+canvas_mountain.width = window.innerWidth;
+canvas_mountain.height = window.innerHeight;
 var W = canvas.width;
 var H = canvas.height;
 var c = canvas.getContext('2d');
@@ -17,6 +23,7 @@ var player1_state = false;
 var player2_state = false;
 var next_turn = false;
 var redraw_mountain = false;
+var paused = false;
 
 var mouse = {
   x : undefined,
@@ -24,20 +31,36 @@ var mouse = {
 };
 
 window.addEventListener('keydown',function(e){
-  if(e.key == 'ArrowLeft'){leftPressed = true;}
-  if(e.key == 'ArrowRight'){rightPressed = true;}
-  if(e.key == ' '){spacePressed = true;}
+  if(e.key == 'ArrowLeft' && !paused){leftPressed = true;}
+  if(e.key == 'ArrowRight' && !paused){rightPressed = true;}
+  if(e.key == ' ' && !paused){spacePressed = true;}
 });
 
 window.addEventListener('keyup',function(e){
-  if(e.key == 'ArrowLeft'){leftPressed = false;}
-  if(e.key == 'ArrowRight'){rightPressed = false;}
-  if(e.key == ' '){spacePressed = false;}
+  if(e.key == 'ArrowLeft' && !paused){leftPressed = false;}
+  if(e.key == 'ArrowRight' && !paused){rightPressed = false;}
+  if(e.key == ' ' && !paused){spacePressed = false;}
 });
 
 window.addEventListener('mousemove', function(e){
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
+  if(!paused){
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  }
+});
+
+pause_div.addEventListener('click',function(){
+
+  if(pause[0].style.display == 'none'){
+    paused = true;
+    pause[0].style.display = 'block';
+    pause[1].style.display = 'none';
+  }
+  else{
+    paused = false;
+    pause[1].style.display = 'block';
+    pause[0].style.display = 'none';
+  }
 });
 
 function Mountain(){
@@ -108,10 +131,10 @@ function Tank(src, x, state){
   }
   this.update = function(){
     if(rightPressed && this.state){
-      this.dx = 1.3;
+      this.dx = 1.1;
     }
     else if(leftPressed && this.state){
-      this.dx = -1.3;
+      this.dx = -1.1;
     }
     else{
       this.dx = 0;
@@ -128,8 +151,17 @@ function Tank(src, x, state){
       }
     }
     var slope = (mountain.y[i+1] - mountain.y[i])/(mountain.x[i+1] - mountain.x[i]);
-    this.y = slope*(this.x - mountain.x[i]) + mountain.y[i];
-    this.angle = Math.atan(slope);
+    if(slope < -2.7 && rightPressed){
+      this.x -= 1.1;
+    }
+    else if(slope > 2.7 && leftPressed){
+      this.x += 1.1;
+    }
+    else{
+      this.y = slope*(this.x - mountain.x[i]) + mountain.y[i];
+      this.angle = Math.atan(slope);
+    }
+
   }
   this.rotate = function(){
     c.translate(this.x,this.y);
@@ -254,6 +286,9 @@ function Bullet(src){
   }
   this.collisionDetect = function() {
     for(var i = 1; i<mountain.x.length - 3; ++i){
+      // if(this.x){
+      //
+      // }
       if(this.x >= mountain.x[i-1] && this.x < mountain.x[i]){
         var slope = (mountain.y[i] - mountain.y[i-1])/(mountain.x[i] - mountain.x[i-1]);
         if(this.y >= mountain.y[i-1] + slope*(this.x - mountain.x[i-1]))
@@ -271,7 +306,7 @@ function Bullet(src){
 function Explosion(src){
   this.x = 0;
   this.y = 0;
-  this.max_radius = W/20;
+  this.max_radius = W/30;
   this.radius = 3;
   this.explosion = new Image();
   this.explosion.src = src;
@@ -383,7 +418,9 @@ function animate(){
   }
 
 }
+
 animate();
+
 
 
 
