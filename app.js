@@ -1,10 +1,13 @@
-var canvas = document.querySelector('canvas');
+var canvas = document.getElementById('main');
+var canvas_mountain = document.getElementById('mountain');
 canvas.width = window.innerWidth*0.95;
 canvas.height = window.innerHeight*0.95;
+canvas_mountain.width = window.innerWidth*0.95;
+canvas_mountain.height = window.innerHeight*0.95;
 var W = canvas.width;
 var H = canvas.height;
 var c = canvas.getContext('2d');
-
+var cm = canvas_mountain.getContext('2d');
 
 var gravity = 0.04;
 var leftPressed = false;
@@ -12,6 +15,8 @@ var rightPressed = false;
 var spacePressed = false;
 var player1_state = false;
 var player2_state = false;
+var next_turn = false;
+var redraw_mountain = false;
 
 var mouse = {
   x : undefined,
@@ -48,7 +53,7 @@ function Mountain(){
         break;
       }
     }
-    if(this.x[start_index+1] - this.x[start_index] < 2){
+    if(this.x[start_index+1] - this.x[start_index] < 5){
       return;
     }
     var midx = (this.x[start_index] + this.x[start_index+1])/2;
@@ -77,13 +82,13 @@ function Mountain(){
     this.y.push(H);
     this.x.push(this.x[0]);
     this.y.push(this.y[0]);
-    c.beginPath();
-    c.moveTo(this.x[0],this.y[0]);
+    cm.beginPath();
+    cm.moveTo(this.x[0],this.y[0]);
     for(var i = 1; i<this.x.length; ++i){
-      c.lineTo(this.x[i],this.y[i]);
+      cm.lineTo(Math.floor(this.x[i]),Math.floor(this.y[i]));
     }
-    c.fillStyle = 'green';
-    c.fill();
+    cm.fillStyle = 'green';
+    cm.fill();
   }
 }
 
@@ -98,6 +103,7 @@ function Tank(src, x, state){
   this.dx = 0;
   this.state = state;
   this.draw = function(){
+    c.beginPath();
     c.drawImage(this.tank, 0, 0, 28, 10, 0, 0, this.width, this.height);
   }
   this.update = function(){
@@ -240,6 +246,10 @@ function Bullet(src){
       this.dy += gravity;
       this.draw();
       this.collisionDetect();
+      if(this.x > W || this.x < 0){
+        this.state = false;
+        next_turn = true;
+      }
     }
   }
   this.collisionDetect = function() {
@@ -283,7 +293,12 @@ function Explosion(src){
           }
         }
         this.state = false;
+        next_turn = true;
+        redraw_mountain = true;
       }
+    }
+    else{
+      this.radius = 3;
     }
   }
 }
@@ -297,7 +312,7 @@ function startGame(){
   gun2 = new Gun("gun.png", false);
   bullet = new Bullet("bullet.png");
   explosion = new Explosion("explosion.png");
-  playerTurn(2);
+  playerTurn(1);
 }
 
 function playerTurn(player){
@@ -322,22 +337,31 @@ function fire(x, y, v, angle){
   bullet.angle = angle;
   bullet.state = true;
   bullet.init();
-  player1_state = false;
-  player2_state = false;
   tank1.state = false;
   tank2.state = false;
 }
 
 startGame();
 
+function drawMountain(){
+  mountain.draw();
+}
+
+drawMountain();
+
 function animate(){
   requestAnimationFrame(animate);
   c.clearRect(0,0,innerWidth,innerHeight);
-  mountain.draw();
   if(mouse.x){
     gun1.calcAngle();
     gun2.calcAngle();
   }
+  if(redraw_mountain){
+    cm.clearRect(0,0,innerWidth,innerHeight);
+    drawMountain();
+    redraw_mountain  = false;
+  }
+
   tank1.update();
   tank2.update();
 
@@ -348,9 +372,19 @@ function animate(){
   }
   catch{}
   explosion.draw();
+  if(next_turn){
+    next_turn = false;
+    if(player1_state){
+      playerTurn(2);
+    }
+    else{
+      playerTurn(1);
+    }
+  }
 
 }
 animate();
+
 
 
 //FIX

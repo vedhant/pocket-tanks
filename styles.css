@@ -1,5 +1,14 @@
-canvas{
-  /* border: 2px solid black; */
+#mountain{
   background: blue;
   margin: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+#main{
+
+  margin: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
