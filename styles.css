@@ -29,3 +29,8 @@ i{
   color: white;
 
 }
+
+@font-face {
+  font-family: 'custom';
+  src: url('Pokemon GB.ttf');
+}

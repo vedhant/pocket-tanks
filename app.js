@@ -34,8 +34,8 @@ var health = {
 var weapon = {
   radius : [W/35, W/15],
   damage : [20, 30],
-  amount1 : [7, 3],
-  amount2 : [7, 3],
+  amount1 : [8, 2],
+  amount2 : [8, 2],
   p1_choice : 0,
   p2_choice : 0
 }
@@ -150,10 +150,10 @@ function Tank(src, x, state){
   }
   this.update = function(){
     if(rightPressed && this.state){
-      this.dx = 1.1;
+      this.dx = 1;
     }
     else if(leftPressed && this.state){
-      this.dx = -1.1;
+      this.dx = -1;
     }
     else{
       this.dx = 0;
@@ -171,10 +171,10 @@ function Tank(src, x, state){
     }
     var slope = (mountain.y[i+1] - mountain.y[i])/(mountain.x[i+1] - mountain.x[i]);
     if(slope < -2.7 && rightPressed){
-      this.x -= 1.1;
+      this.x -= 1;
     }
     else if(slope > 2.7 && leftPressed){
-      this.x += 1.1;
+      this.x += 1;
     }
     else{
       this.y = slope*(this.x - mountain.x[i]) + mountain.y[i];
@@ -470,6 +470,62 @@ function drawMountain(){
 
 drawMountain();
 
+function drawStats(){
+  c.font = '20px custom';
+  c.fillStyle = 'white';
+  c.fillText("Weapon :", W/16, 40);
+  c.fillText("Weapon :", W*15/16 - 200, 40);
+  if(weapon.p1_choice == 0){
+    c.fillStyle = 'rgba(255, 255, 255, 1)';
+    c.fillText('Single Shot', W/16, 80);
+    c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    c.fillText('Big Shot', W/16, 120);
+  }
+  else{
+    c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    c.fillText('Single Shot', W/16, 80);
+    c.fillStyle = 'rgba(255, 255, 255, 1)';
+    c.fillText('Big Shot', W/16, 120);
+  }
+  if(weapon.p2_choice == 0){
+    c.fillStyle = 'rgba(255, 255, 255, 1)';
+    c.fillText('Single Shot', 15*W/16 - 200, 80);
+    c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    c.fillText('Big Shot', 15*W/16 - 200, 120);
+  }
+  else{
+    c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    c.fillText('Single Shot', 15*W/16 - 200, 80);
+    c.fillStyle = 'rgba(255, 255, 255, 1)';
+    c.fillText('Big Shot', 15*W/16 - 200, 120);
+  }
+  healthBar();
+}
+
+function healthBar(){
+  c.beginPath();
+  c.rect(W/16, 160, 200, 20);
+  c.rect(15*W/16 - 200, 160, 200, 20);
+  c.strokeStyle = 'rgba(255, 255, 255, 1)';
+  c.stroke();
+  var g1 = 255*health.p1/100;
+  var g2 = 255*health.p2/100;
+  var r1 = 255 - g1;
+  var r2 = 255 - g2;
+  if(health.p1 > 0){
+    c.beginPath();
+    c.rect(W/16, 160, 2*health.p1, 20);
+    c.fillStyle = 'rgba('+r1+','+g1+',0,1)';
+    c.fill();
+  }
+  if(health.p2 > 0){
+    c.beginPath();
+    c.rect(15*W/16 - 200, 160, 2*health.p2, 20);
+    c.fillStyle = 'rgba('+r2+','+g2+',0,1)';
+    c.fill();
+  }
+}
+
 function animate(){
   requestAnimationFrame(animate);
   c.clearRect(0,0,innerWidth,innerHeight);
@@ -517,7 +573,7 @@ function animate(){
       playerTurn(1);
     }
   }
-  console.log(health.p1, health.p2);
+  drawStats();
 }
 
 animate();
