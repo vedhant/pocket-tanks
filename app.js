@@ -500,6 +500,25 @@ function drawStats(){
     c.fillText('Big Shot', 15*W/16 - 200, 120);
   }
   healthBar();
+  c.font = '15px custom';
+  c.fillStyle = 'white';
+  if(gun1.angle*180/Math.PI <= 90){
+    var a1 = -gun1.angle*180/Math.PI;
+  }else{
+    var a1 = 360 - gun1.angle*180/Math.PI;
+  }
+  if(a1>180){a1 -= 360;}
+  if(gun2.angle*180/Math.PI <= 90){
+    var a2 = -gun2.angle*180/Math.PI;
+  }else{
+    var a2 = 360 - gun2.angle*180/Math.PI;
+  }
+  if(a2>180){a2 -= 360;}
+  c.fillText('Angle : ' + a1.toFixed(2), W/16, H - 60);
+  c.fillText('Angle : ' + a2.toFixed(2), 15*W/16-200, H - 60);
+  c.fillText('Power : ' + (gun1.speed/gun1.max_speed*100).toFixed(2), W/16, H - 30);
+  c.fillText('Power : ' + (gun2.speed/gun2.max_speed*100).toFixed(2), 15*W/16-200, H - 30);
+  c.fillText();
 }
 
 function healthBar(){
