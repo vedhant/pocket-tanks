@@ -19,11 +19,26 @@ var gravity = 0.04;
 var leftPressed = false;
 var rightPressed = false;
 var spacePressed = false;
+var downPressed = false;
+var upPressed = false;
 var player1_state = false;
 var player2_state = false;
 var next_turn = false;
 var redraw_mountain = false;
 var paused = false;
+
+var health = {
+  p1 : 100,
+  p2 : 100
+}
+var weapon = {
+  radius : [W/35, W/15],
+  damage : [20, 30],
+  amount1 : [7, 3],
+  amount2 : [7, 3],
+  p1_choice : 0,
+  p2_choice : 0
+}
 
 var mouse = {
   x : undefined,
@@ -34,12 +49,16 @@ window.addEventListener('keydown',function(e){
   if(e.key == 'ArrowLeft' && !paused){leftPressed = true;}
   if(e.key == 'ArrowRight' && !paused){rightPressed = true;}
   if(e.key == ' ' && !paused){spacePressed = true;}
+  if(e.key == 'ArrowDown' && !paused){downPressed = true;}
+  if(e.key == 'ArrowUp' && !paused){upPressed = true;}
 });
 
 window.addEventListener('keyup',function(e){
   if(e.key == 'ArrowLeft' && !paused){leftPressed = false;}
   if(e.key == 'ArrowRight' && !paused){rightPressed = false;}
   if(e.key == ' ' && !paused){spacePressed = false;}
+  if(e.key == 'ArrowDown' && !paused){downPressed = false;}
+  if(e.key == 'ArrowUp' && !paused){upPressed = false;}
 });
 
 window.addEventListener('mousemove', function(e){
@@ -285,10 +304,30 @@ function Bullet(src){
     }
   }
   this.collisionDetect = function() {
+    var cornersx1 = [tank1.x, tank1.width*Math.cos(tank1.angle) + tank1.x, tank1.x + tank1.height*Math.sin(tank1.angle), tank1.x + tank1.height*Math.sin(tank1.angle) + tank1.width*Math.cos(tank1.angle)];
+    var cornersy1 = [tank1.y, tank1.width*Math.sin(tank1.angle) + tank1.y, tank1.y - tank1.height*Math.cos(tank1.angle), tank1.y - tank1.height*Math.cos(tank1.angle) + tank1.width*Math.sin(tank1.angle)];
+    var cornersx2 = [tank2.x, tank2.width*Math.cos(tank2.angle) + tank2.x, tank2.x + tank2.height*Math.sin(tank2.angle), tank2.x + tank2.height*Math.sin(tank2.angle) + tank2.width*Math.cos(tank2.angle)];
+    var cornersy2 = [tank2.y, tank2.width*Math.sin(tank2.angle) + tank2.y, tank2.y - tank2.height*Math.cos(tank2.angle), tank2.y - tank2.height*Math.cos(tank2.angle) + tank2.width*Math.sin(tank2.angle)];
+    var A = tank1.width*tank1.height;
+    var a1 = this.area(cornersx1[0], cornersy1[0], cornersx1[1], cornersy1[1], this.x, this.y) + this.area(cornersx1[3], cornersy1[3], cornersx1[1], cornersy1[1], this.x, this.y) + this.area(cornersx1[3], cornersy1[3], cornersx1[2], cornersy1[2], this.x, this.y) + this.area(cornersx1[2], cornersy1[2], cornersx1[0], cornersy1[0], this.x, this.y);
+    var a2 = this.area(cornersx2[0], cornersy2[0], cornersx2[1], cornersy2[1], this.x, this.y) + this.area(cornersx2[3], cornersy2[3], cornersx2[1], cornersy2[1], this.x, this.y) + this.area(cornersx2[3], cornersy2[3], cornersx2[2], cornersy2[2], this.x, this.y) + this.area(cornersx2[2], cornersy2[2], cornersx2[0], cornersy2[0], this.x, this.y);
+    if(a1 <= A){
+      this.state = false;
+      explosion.x = this.x;
+      explosion.y = this.y;
+      explosion.state = true;
+      explosion.setRadius();
+      health.p1 -= weapon.damage[weapon.p1_choice];
+    }
+    if(a2 <= A){
+      this.state = false;
+      explosion.x = this.x;
+      explosion.y = this.y;
+      explosion.state = true;
+      explosion.setRadius();
+      health.p2 -= weapon.damage[weapon.p2_choice];
+    }
     for(var i = 1; i<mountain.x.length - 3; ++i){
-      // if(this.x){
-      //
-      // }
       if(this.x >= mountain.x[i-1] && this.x < mountain.x[i]){
         var slope = (mountain.y[i] - mountain.y[i-1])/(mountain.x[i] - mountain.x[i-1]);
         if(this.y >= mountain.y[i-1] + slope*(this.x - mountain.x[i-1]))
@@ -297,8 +336,19 @@ function Bullet(src){
           explosion.x = this.x;
           explosion.y = this.y;
           explosion.state = true;
+          explosion.setRadius();
+          calcDamage(this.x, this.y);
         }
       }
+    }
+  }
+  this.area = function(x1, y1, x2, y2, x3, y3) {
+    a = 0.5*(x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2));
+    if(a>0){
+      return a;
+    }
+    else{
+      return -a;
     }
   }
 }
@@ -336,6 +386,13 @@ function Explosion(src){
       this.radius = 3;
     }
   }
+  this.setRadius = function() {
+    if(player1_state){
+      this.max_radius = weapon.radius[weapon.p1_choice];
+    } else if(player2_state){
+      this.max_radius = weapon.radius[weapon.p2_choice];
+    }
+  }
 }
 
 function startGame(){
@@ -354,16 +411,27 @@ function playerTurn(player){
   if(player == 1){
     player1_state = true;
     player2_state = false;
+    if(weapon.amount1[0]==0){
+      weapon.p1_choice = 1;
+    }
+    if(weapon.amount1[1]==0){
+      weapon.p1_choice = 0;
+    }
   }
   else{
     player1_state = false;
     player2_state = true;
+    if(weapon.amount2[0]==0){
+      weapon.p2_choice = 1;
+    }
+    if(weapon.amount2[1]==0){
+      weapon.p2_choice = 0;
+    }
   }
   tank1.state = player1_state;
   tank2.state = player2_state;
   gun1.state = player1_state;
   gun2.state = player2_state;
-
 }
 function fire(x, y, v, angle){
   bullet.speed = v;
@@ -374,6 +442,24 @@ function fire(x, y, v, angle){
   bullet.init();
   tank1.state = false;
   tank2.state = false;
+  if(player1_state){
+    weapon.amount1[weapon.p1_choice]--;
+  }
+  else if(player2_state){
+    weapon.amount2[weapon.p2_choice]--;
+  }
+}
+
+function calcDamage(x, y){
+  var d1 = Math.sqrt(Math.pow(x - tank1.x - tank1.width*Math.cos(tank1.angle)/2, 2) + Math.pow(y - tank1.y - tank1.width*Math.sin(tank1.angle), 2)) - 10;
+  var d2 = Math.sqrt(Math.pow(x - tank2.x - tank2.width*Math.cos(tank2.angle)/2, 2) + Math.pow(y - tank2.y - tank2.width*Math.sin(tank2.angle), 2)) - 10;
+  if(d1 <= explosion.max_radius){
+    health.p1 -= weapon.damage[weapon.p1_choice]*(1 - (d1/explosion.max_radius));
+  }
+  if(d2 <= explosion.max_radius){
+    health.p2 -= weapon.damage[weapon.p2_choice]*(1 - (d2/explosion.max_radius));
+  }
+  console.log(d1, explosion.max_radius);
 }
 
 startGame();
@@ -396,7 +482,22 @@ function animate(){
     drawMountain();
     redraw_mountain  = false;
   }
-
+  if(upPressed){
+    if(tank1.state && weapon.amount1[0]>0){
+      weapon.p1_choice = 0;
+    }
+    if(tank2.state && weapon.amount2[0]>0){
+      weapon.p2_choice = 0;
+    }
+  }
+  if(downPressed){
+    if(tank1.state && weapon.amount1[1]>0){
+      weapon.p1_choice = 1;
+    }
+    if(tank2.state && weapon.amount2[1]>0){
+      weapon.p2_choice = 1;
+    }
+  }
   tank1.update();
   tank2.update();
 
@@ -416,7 +517,7 @@ function animate(){
       playerTurn(1);
     }
   }
-
+  console.log(health.p1, health.p2);
 }
 
 animate();
