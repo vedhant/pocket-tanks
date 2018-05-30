@@ -72,6 +72,18 @@ i{
   padding: 4px;
   cursor: pointer;
 }
+#play_again{
+  color: white;
+  font-family: 'custom';
+  font-size: 180%;
+  position: absolute;
+  top: 70vh;
+  left: 40vw;
+  display: none;
+  cursor: pointer;
+  border: 3px solid white;
+  padding: 10px;
+}
 @font-face {
   font-family: 'custom';
   src: url('Pokemon GB.ttf');

@@ -7,6 +7,7 @@ var inst_text = document.getElementById('inst_text');
 var close = document.getElementById('close');
 var pause = document.querySelectorAll('i');
 var pause_div = document.getElementById('pause');
+var play_again = document.getElementById('play_again');
 pause[0].style.display = 'none';
 pause[1].style.display = 'block';
 
@@ -38,8 +39,8 @@ var health = {
 var weapon = {
   radius : [W/35, W/15],
   damage : [20, 30],
-  amount1 : [8, 2],
-  amount2 : [8, 2],
+  amount1 : [7, 3],
+  amount2 : [7, 3],
   p1_choice : 0,
   p2_choice : 0
 }
@@ -58,11 +59,11 @@ window.addEventListener('keydown',function(e){
 });
 
 window.addEventListener('keyup',function(e){
-  if(e.key == 'ArrowLeft' && !paused){leftPressed = false;}
-  if(e.key == 'ArrowRight' && !paused){rightPressed = false;}
-  if(e.key == ' ' && !paused){spacePressed = false;}
-  if(e.key == 'ArrowDown' && !paused){downPressed = false;}
-  if(e.key == 'ArrowUp' && !paused){upPressed = false;}
+  if(e.key == 'ArrowLeft'){leftPressed = false;}
+  if(e.key == 'ArrowRight'){rightPressed = false;}
+  if(e.key == ' '){spacePressed = false;}
+  if(e.key == 'ArrowDown'){downPressed = false;}
+  if(e.key == 'ArrowUp'){upPressed = false;}
 });
 
 window.addEventListener('mousemove', function(e){
@@ -87,6 +88,10 @@ pause_div.addEventListener('click',function(){
 });
 
 reload.addEventListener('click', function() {
+  location.reload();
+});
+
+play_again.addEventListener('click', function() {
   location.reload();
 });
 
@@ -489,30 +494,30 @@ function drawStats(){
   c.font = '20px custom';
   c.fillStyle = 'white';
   c.fillText("Weapon :", W/16, 40);
-  c.fillText("Weapon :", W*15/16 - 200, 40);
+  c.fillText("Weapon :", W*15/16 - 250, 40);
   if(weapon.p1_choice == 0){
     c.fillStyle = 'rgba(255, 255, 255, 1)';
-    c.fillText('Single Shot', W/16, 80);
+    c.fillText('Single Shot  X'+weapon.amount1[0], W/16, 80);
     c.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    c.fillText('Big Shot', W/16, 120);
+    c.fillText('Big Shot     X'+weapon.amount1[1], W/16, 120);
   }
   else{
     c.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    c.fillText('Single Shot', W/16, 80);
+    c.fillText('Single Shot  X'+weapon.amount1[0], W/16, 80);
     c.fillStyle = 'rgba(255, 255, 255, 1)';
-    c.fillText('Big Shot', W/16, 120);
+    c.fillText('Big Shot     X'+weapon.amount1[1], W/16, 120);
   }
   if(weapon.p2_choice == 0){
     c.fillStyle = 'rgba(255, 255, 255, 1)';
-    c.fillText('Single Shot', 15*W/16 - 200, 80);
+    c.fillText('Single Shot  X'+weapon.amount2[0], 15*W/16 - 250, 80);
     c.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    c.fillText('Big Shot', 15*W/16 - 200, 120);
+    c.fillText('Big Shot     X'+weapon.amount2[1], 15*W/16 - 250, 120);
   }
   else{
     c.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    c.fillText('Single Shot', 15*W/16 - 200, 80);
+    c.fillText('Single Shot  X'+weapon.amount2[0], 15*W/16 - 250, 80);
     c.fillStyle = 'rgba(255, 255, 255, 1)';
-    c.fillText('Big Shot', 15*W/16 - 200, 120);
+    c.fillText('Big Shot     X'+weapon.amount2[1], 15*W/16 - 250, 120);
   }
   healthBar();
   c.font = '15px custom';
@@ -538,7 +543,7 @@ function drawStats(){
 function healthBar(){
   c.beginPath();
   c.rect(W/16, 160, 200, 20);
-  c.rect(15*W/16 - 200, 160, 200, 20);
+  c.rect(15*W/16 - 250, 160, 200, 20);
   c.strokeStyle = 'rgba(255, 255, 255, 1)';
   c.stroke();
   var g1 = 255*health.p1/100;
@@ -553,14 +558,30 @@ function healthBar(){
   }
   if(health.p2 > 0){
     c.beginPath();
-    c.rect(15*W/16 - 200, 160, 2*health.p2, 20);
+    c.rect(15*W/16 - 250, 160, 2*health.p2, 20);
     c.fillStyle = 'rgba('+r2+','+g2+',0,1)';
     c.fill();
   }
 }
 
 function gameOver() {
-
+  paused = true;
+  c.fillStyle = 'white';
+  c.font = '40px custom';
+  c.fillText('GAME OVER!', W/3+50, H/3);
+  c.font = '30px custom';
+  if(health.p1 > health.p2){
+    c.fillText('Player 1 WINS!', W/3+50, H/2);
+  }
+  else if(health.p2 > health.p1){
+    c.fillText('Player 2 WINS!', W/3+50, H/2);
+  }
+  else{
+    c.fillText('Its a DRAW!', W/3+60, H/2);
+  }
+  reload.style.display = 'none';
+  play_again.style.display = 'block';
+  instructions.style.display = 'none';
 }
 
 function animate(){
