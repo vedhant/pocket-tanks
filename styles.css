@@ -18,7 +18,7 @@
 #pause{
   position: absolute;
   top: 90vh;
-  left: 50vw;
+  left: 45vw;
   cursor: pointer;
   border: 2px solid white;
   padding: 4px;
@@ -30,6 +30,48 @@ i{
 
 }
 
+#restart{
+  position: absolute;
+  top: 90vh;
+  left:48vw;
+  cursor: pointer;
+  color: white;
+  font-family: 'custom';
+  border: 2px solid white;
+  border-radius: 2px;
+  padding: 4px;
+}
+#instructions{
+  position: absolute;
+  top: 95vh;
+  left:44.5vw;
+  cursor: pointer;
+  color: white;
+  font-family: 'custom';
+  font-size: 90%;
+  border: 2px solid white;
+  border-radius: 2px;
+  padding: 4px;
+}
+#inst_text{
+  position:absolute;
+  top:30vh;
+  left: 10vw;
+  color: white;
+  font-family: 'custom';
+  font-size: 110%;
+  border: 3px solid white;
+  border-radius: 3px;
+  padding: 20px;
+  display: none;
+}
+#close{
+  border: 2px solid white;
+  border-radius: 2px;
+  float: right;
+  padding: 4px;
+  cursor: pointer;
+}
 @font-face {
   font-family: 'custom';
   src: url('Pokemon GB.ttf');

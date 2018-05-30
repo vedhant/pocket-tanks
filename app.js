@@ -1,6 +1,10 @@
 var canvas = document.getElementById('main');
 var canvas_mountain = document.getElementById('mountain');
 
+var reload = document.getElementById('restart');
+var instructions = document.getElementById('instructions');
+var inst_text = document.getElementById('inst_text');
+var close = document.getElementById('close');
 var pause = document.querySelectorAll('i');
 var pause_div = document.getElementById('pause');
 pause[0].style.display = 'none';
@@ -80,6 +84,18 @@ pause_div.addEventListener('click',function(){
     pause[1].style.display = 'block';
     pause[0].style.display = 'none';
   }
+});
+
+reload.addEventListener('click', function() {
+  location.reload();
+});
+
+instructions.addEventListener('click', function() {
+  inst_text.style.display = 'block';
+});
+
+close.addEventListener('click', function() {
+  inst_text.style.display = 'none';
 });
 
 function Mountain(){
@@ -459,7 +475,6 @@ function calcDamage(x, y){
   if(d2 <= explosion.max_radius){
     health.p2 -= weapon.damage[weapon.p2_choice]*(1 - (d2/explosion.max_radius));
   }
-  console.log(d1, explosion.max_radius);
 }
 
 startGame();
@@ -518,7 +533,6 @@ function drawStats(){
   c.fillText('Angle : ' + a2.toFixed(2), 15*W/16-200, H - 60);
   c.fillText('Power : ' + (gun1.speed/gun1.max_speed*100).toFixed(2), W/16, H - 30);
   c.fillText('Power : ' + (gun2.speed/gun2.max_speed*100).toFixed(2), 15*W/16-200, H - 30);
-  c.fillText();
 }
 
 function healthBar(){
@@ -543,6 +557,10 @@ function healthBar(){
     c.fillStyle = 'rgba('+r2+','+g2+',0,1)';
     c.fill();
   }
+}
+
+function gameOver() {
+
 }
 
 function animate(){
@@ -593,6 +611,12 @@ function animate(){
     }
   }
   drawStats();
+  if(health.p1 <= 0 || health.p2 <= 0){
+    gameOver();
+  }
+  if(weapon.amount2[0]==0 && weapon.amount2[1]==0){
+    gameOver();
+  }
 }
 
 animate();
