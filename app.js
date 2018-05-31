@@ -31,6 +31,7 @@ var player2_state = false;
 var next_turn = false;
 var redraw_mountain = false;
 var paused = false;
+var game_over = false
 
 var health = {
   p1 : 100,
@@ -141,10 +142,12 @@ function Mountain(){
   this.draw = function(){
     this.x.push(W);
     this.y.push(H);
-    this.x.push(0);
-    this.y.push(H);
-    this.x.push(this.x[0]);
-    this.y.push(this.y[0]);
+    // this.x.push(0);
+    // this.y.push(H);
+    this.x.splice(0,0,0);
+    this.y.splice(0,0,H);
+    // this.x.push(this.x[0]);
+    // this.y.push(this.y[0]);
     cm.beginPath();
     cm.moveTo(this.x[0],this.y[0]);
     for(var i = 1; i<this.x.length; ++i){
@@ -170,10 +173,10 @@ function Tank(src, x, state){
     c.drawImage(this.tank, 0, 0, 28, 10, 0, 0, this.width, this.height);
   }
   this.update = function(){
-    if(rightPressed && this.state){
+    if(rightPressed && this.state && this.x < W-25){
       this.dx = 1;
     }
-    else if(leftPressed && this.state){
+    else if(leftPressed && this.state && this.x > 5){
       this.dx = -1;
     }
     else{
@@ -390,7 +393,7 @@ function Explosion(src){
         this.radius += this.speed;
       }
       else{
-        for(var i=0; i<mountain.x.length - 3; ++i){
+        for(var i=1; i<(mountain.x.length - 2); ++i){
           if(mountain.x[i] >= this.x - this.radius && mountain.x[i] <= this.x + this.radius){
             var y = Math.sqrt(Math.pow(this.radius, 2) - Math.pow(this.x - mountain.x[i], 2)) + this.y;
             if(y > mountain.y[i]){
@@ -398,9 +401,12 @@ function Explosion(src){
             }
           }
         }
+        mountain.y[mountain.y.length-1] = mountain.y[0];
         this.state = false;
         next_turn = true;
         redraw_mountain = true;
+        console.log(mountain.x);
+        console.log(mountain.y);
       }
     }
     else{
@@ -419,8 +425,8 @@ function Explosion(src){
 function startGame(){
   mountain = new Mountain();
   mountain.findLocus(0, -3*H/4);
-  tank1 = new Tank("redTank.png", W*Math.random()/3, false);
-  tank2 = new Tank("yellowTank.png", W - W*Math.random()/3, false);
+  tank1 = new Tank("redTank.png", W*Math.random()/3+25, false);
+  tank2 = new Tank("yellowTank.png", W - W*Math.random()/3 -25, false);
   gun1 = new Gun("gun.png", false);
   gun2 = new Gun("gun.png", false);
   bullet = new Bullet("bullet.png");
@@ -582,6 +588,7 @@ function gameOver() {
   reload.style.display = 'none';
   play_again.style.display = 'block';
   instructions.style.display = 'none';
+  pause_div.style.display = 'none';
 }
 
 function animate(){
@@ -633,20 +640,18 @@ function animate(){
   }
   drawStats();
   if(health.p1 <= 0 || health.p2 <= 0){
-    gameOver();
+    if(explosion.state){
+      game_over = true;
+    }
   }
   if(weapon.amount2[0]==0 && weapon.amount2[1]==0){
+    if(explosion.state){
+      game_over = true;
+    }
+  }
+  if(game_over){
     gameOver();
   }
 }
 
 animate();
-
-
-
-
-//FIX
-//tank2 out of frame
-//background color and terrain color
-//fix tank movement bounds
-//mouse scope out of window
