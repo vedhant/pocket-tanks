@@ -405,8 +405,6 @@ function Explosion(src){
         this.state = false;
         next_turn = true;
         redraw_mountain = true;
-        console.log(mountain.x);
-        console.log(mountain.y);
       }
     }
     else{
