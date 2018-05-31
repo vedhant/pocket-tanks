@@ -627,7 +627,7 @@ function animate(){
   try{
     bullet.update();
   }
-  catch{}
+  catch(err){}
   explosion.draw();
   if(next_turn){
     next_turn = false;
